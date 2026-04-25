@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TON Gross Reporting System</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background-color: #f4f7f6; padding: 10px; margin: 0; }
         .container { max-width: 1000px; margin: auto; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
@@ -18,10 +17,11 @@
         @media (min-width: 768px) { .tables-container { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; } }
 
         .ton-section { border: 1px solid #ddd; border-radius: 8px; background: #fff; overflow: hidden; }
-        .ton-header { background: #007bff; color: white; padding: 12px; text-align: center; font-size: 1.1rem; font-weight: bold; }
+        .ton-header { background: #007bff; color: white; padding: 12px; text-align: center; font-size: 1.1rem; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+        .btn-clear-mini { background: rgba(255,255,255,0.2); border: 1px solid white; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; }
         
         table { width: 100%; border-collapse: collapse; }
-        td { padding: 10px 5px; text-align: left; border-bottom: 1px solid #eee; }
+        td { padding: 8px 5px; text-align: left; border-bottom: 1px solid #eee; }
         
         input[type="number"], select, input[type="date"] { 
             width: 100%; border: 1px solid #ccc; border-radius: 6px; padding: 10px; 
@@ -32,19 +32,31 @@
         .footer-row { font-weight: bold; background: #f8f9fa; padding: 10px; border-radius: 4px; margin-top: 5px; display: flex; justify-content: space-between; align-items: center; }
         .btn-add { background: #28a745; color: white; border: none; padding: 12px; cursor: pointer; margin-top: 10px; width: 100%; font-weight: bold; }
         
-        .action-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; position: sticky; bottom: 10px; }
-        .btn-save { background: #007bff; color: white; border: none; padding: 18px; cursor: pointer; border-radius: 10px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-        .btn-pdf { background: #dc3545; color: white; border: none; padding: 18px; cursor: pointer; border-radius: 10px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-        .btn-save:disabled { background: #ccc; cursor: not-allowed; }
+        .action-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .btn-save { background: #007bff; color: white; border: none; padding: 18px; cursor: pointer; border-radius: 10px; font-weight: bold; }
+        .btn-image { background: #dc3545; color: white; border: none; padding: 18px; cursor: pointer; border-radius: 10px; font-weight: bold; }
+        .btn-load { grid-column: span 2; background: #ff9800; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .btn-exit { grid-column: span 2; background: #e67e22; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 5px;}
         
-        .hits-input { background: #fff0f0; border: 1px solid #ffc1c1 !important; width: 80px !important; text-align: right; color: red; font-weight: bold; }
-
-        /* MODAL STYLES */
         .modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: white; padding: 30px; border-radius: 15px; text-align: center; max-width: 80%; width: 300px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); animation: fadeIn 0.3s ease; }
-        .modal-content h2 { margin-top: 0; color: #333; }
+        .modal-content { background: white; padding: 30px; border-radius: 15px; text-align: center; max-width: 80%; width: 300px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
         .modal-btn { background: #007bff; color: white; border: none; padding: 10px 25px; border-radius: 5px; cursor: pointer; margin-top: 20px; font-weight: bold; }
-        @keyframes fadeIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* Hidden Area for Image Generation */
+        #imageReportArea { position: absolute; left: -9999px; top: -9999px; width: 1200px; background: white; padding: 40px; }
+        #imageReportArea.active { position: static; left: 0; top: 0; display: block; }
+        .ir-header { text-align: center; margin-bottom: 30px; border-bottom: 4px solid #007bff; padding-bottom: 20px; }
+        .ir-header h1 { margin: 0; font-size: 42px; color: #222; }
+        .ir-meta { color: #444; font-size: 22px; margin-top: 10px; font-weight: bold; }
+        .ir-table-group { display: flex; flex-direction: row; gap: 25px; align-items: flex-start; }
+        .ir-ton-col { flex: 1; border: 2px solid #ddd; border-radius: 12px; overflow: hidden; background: #fff; }
+        .ir-ton-title { background: #007bff; color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 24px; }
+        .ir-table { width: 100%; border-collapse: collapse; font-size: 18px; }
+        .ir-table td { padding: 12px 10px; border-bottom: 1px solid #eee; }
+        .ir-val { text-align: right; font-family: monospace; font-weight: bold; font-size: 20px; }
+        .ir-label { font-weight: bold; color: #333; width: 80px; background: #f9f9f9; }
+        .ir-footer { background: #eee; font-weight: 900; border-top: 3px solid #ccc; }
+        .ir-hits { color: #b21f2d; font-weight: 900; background: #fff0f0; }
     </style>
 </head>
 <body>
@@ -65,151 +77,211 @@
 
     <div class="tables-container">
         <div class="ton-section">
-            <div class="ton-header">TON 1</div>
+            <div class="ton-header"><span>TON 1</span><button class="btn-clear-mini" onclick="clearSection('ton1')">CLEAR</button></div>
             <table id="table-ton1"><tbody id="body-ton1">
-                <tr><td><span class="row-label">P1</span></td><td><input type="number" inputmode="decimal" class="val-ton1" oninput="calculate('ton1')"></td></tr>
-                <tr><td><span class="row-label">P2</span></td><td><input type="number" inputmode="decimal" class="val-ton1" oninput="calculate('ton1')"></td></tr>
+                <tr><td style="width:70px"><span class="row-label">P1</span></td><td><input type="number" inputmode="decimal" class="val-ton1" oninput="markUnsaved('ton1')"></td></tr>
+                <tr><td><span class="row-label">P2</span></td><td><input type="number" inputmode="decimal" class="val-ton1" oninput="markUnsaved('ton1')"></td></tr>
             </tbody></table>
             <button class="btn-add" onclick="addRow('ton1')">+ Add Row</button>
             <div class="footer-row"><span>TOTAL:</span> <span id="total-ton1">0</span></div>
-            <div class="footer-row"><span>HITS:</span> <input type="number" id="hits-ton1" class="hits-input" value="0"></div>
+            <div class="footer-row"><span>HITS:</span> <input type="number" id="hits-ton1" class="hits-input" value="0" oninput="markUnsaved('ton1')"></div>
         </div>
 
         <div class="ton-section">
-            <div class="ton-header">TON 2</div>
+            <div class="ton-header"><span>TON 2</span><button class="btn-clear-mini" onclick="clearSection('ton2')">CLEAR</button></div>
             <table id="table-ton2"><tbody id="body-ton2">
-                <tr><td><span class="row-label">P1</span></td><td><input type="number" inputmode="decimal" class="val-ton2" oninput="calculate('ton2')"></td></tr>
-                <tr><td><span class="row-label">P2</span></td><td><input type="number" inputmode="decimal" class="val-ton2" oninput="calculate('ton2')"></td></tr>
+                <tr><td style="width:70px"><span class="row-label">P1</span></td><td><input type="number" inputmode="decimal" class="val-ton2" oninput="markUnsaved('ton2')"></td></tr>
+                <tr><td><span class="row-label">P2</span></td><td><input type="number" inputmode="decimal" class="val-ton2" oninput="markUnsaved('ton2')"></td></tr>
             </tbody></table>
             <button class="btn-add" onclick="addRow('ton2')">+ Add Row</button>
             <div class="footer-row"><span>TOTAL:</span> <span id="total-ton2">0</span></div>
-            <div class="footer-row"><span>HITS:</span> <input type="number" id="hits-ton2" class="hits-input" value="0"></div>
+            <div class="footer-row"><span>HITS:</span> <input type="number" id="hits-ton2" class="hits-input" value="0" oninput="markUnsaved('ton2')"></div>
         </div>
 
         <div class="ton-section">
-            <div class="ton-header">TON 3</div>
+            <div class="ton-header"><span>TON 3</span><button class="btn-clear-mini" onclick="clearSection('ton3')">CLEAR</button></div>
             <table id="table-ton3"><tbody id="body-ton3">
-                <tr><td><span class="row-label">P1</span></td><td><input type="number" inputmode="decimal" class="val-ton3" oninput="calculate('ton3')"></td></tr>
-                <tr><td><span class="row-label">P2</span></td><td><input type="number" inputmode="decimal" class="val-ton3" oninput="calculate('ton3')"></td></tr>
+                <tr><td style="width:70px"><span class="row-label">P1</span></td><td><input type="number" inputmode="decimal" class="val-ton3" oninput="markUnsaved('ton3')"></td></tr>
+                <tr><td><span class="row-label">P2</span></td><td><input type="number" inputmode="decimal" class="val-ton3" oninput="markUnsaved('ton3')"></td></tr>
             </tbody></table>
             <button class="btn-add" onclick="addRow('ton3')">+ Add Row</button>
             <div class="footer-row"><span>TOTAL:</span> <span id="total-ton3">0</span></div>
-            <div class="footer-row"><span>HITS:</span> <input type="number" id="hits-ton3" class="hits-input" value="0"></div>
+            <div class="footer-row"><span>HITS:</span> <input type="number" id="hits-ton3" class="hits-input" value="0" oninput="markUnsaved('ton3')"></div>
         </div>
     </div>
 
     <div class="action-btns">
         <button class="btn-save" onclick="saveToSheet()">SAVE TO SHEET</button>
-        <button class="btn-pdf" onclick="generatePDF()">GENERATE PDF</button>
+        <button class="btn-image" onclick="generateImageReport()">GENERATE LONG IMAGE</button>
+        <button class="btn-load" onclick="loadFromSheet()">LOAD DATA</button>
+        <button class="btn-exit" onclick="handleExit()">SAVE & EXIT APP</button>
+    </div>
+</div>
+
+<div id="imageReportArea">
+    <div class="ir-header"><h1>TON GROSS REPORT</h1><div class="ir-meta" id="irMeta"></div></div>
+    <div class="ir-table-group">
+        <div class="ir-ton-col"><div class="ir-ton-title">TON 1</div><table class="ir-table"><tbody id="irBody-ton1"></tbody></table></div>
+        <div class="ir-ton-col"><div class="ir-ton-title">TON 2</div><table class="ir-table"><tbody id="irBody-ton2"></tbody></table></div>
+        <div class="ir-ton-col"><div class="ir-ton-title">TON 3</div><table class="ir-table"><tbody id="irBody-ton3"></tbody></table></div>
     </div>
 </div>
 
 <div id="saveModal" class="modal-overlay">
-    <div class="modal-content">
-        <h2 id="modalTitle">Saving...</h2>
-        <p id="modalMsg">Please wait, your data is being sent to Google Sheets.</p>
-        <button id="modalBtn" class="modal-btn" style="display:none;" onclick="closeModal()">Close</button>
-    </div>
+    <div class="modal-content"><h2 id="modalTitle"></h2><p id="modalMsg"></p><button id="modalBtn" class="modal-btn" style="display:none;" onclick="closeModal()">Close</button></div>
 </div>
 
 <script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNFoUi82DBfDYIMaIrFCaOjtjtrf1KWewgWlKEpoixGEYWEmz6QCikfmYigoWGAxbm5w/exec';
+    let hasUnsavedChanges = false;
+
     document.getElementById('reportDate').valueAsDate = new Date();
+
+    // 1. TRIGGER WARNING WHEN CLICKING 'X' ON BROWSER
+    window.onbeforeunload = function() {
+        if (hasUnsavedChanges) {
+            return "You have unsaved data! Are you sure you want to close without saving to Google Sheets?";
+        }
+    };
+
+    function markUnsaved(section) {
+        hasUnsavedChanges = true;
+        calculate(section);
+    }
 
     function addRow(section) {
         const tbody = document.getElementById(`body-${section}`);
         const rowCount = tbody.rows.length + 1;
         const row = tbody.insertRow();
-        row.innerHTML = `<td><span class="row-label">P${rowCount}</span></td><td><input type="number" inputmode="decimal" class="val-${section}" oninput="calculate('${section}')"></td>`;
+        row.innerHTML = `<td style="width:70px"><span class="row-label">P${rowCount}</span></td><td><input type="number" inputmode="decimal" class="val-${section}" oninput="markUnsaved('${section}')"></td>`;
+        row.querySelector('input').focus();
+        hasUnsavedChanges = true;
+    }
+
+    function clearSection(section) {
+        if(confirm(`Reset ${section.toUpperCase()}?`)) {
+            document.getElementById(`body-${section}`).innerHTML = `
+                <tr><td style="width:70px"><span class="row-label">P1</span></td><td><input type="number" inputmode="decimal" class="val-${section}" oninput="markUnsaved('${section}')"></td></tr>
+                <tr><td><span class="row-label">P2</span></td><td><input type="number" inputmode="decimal" class="val-${section}" oninput="markUnsaved('${section}')"></td></tr>
+            `;
+            document.getElementById(`hits-${section}`).value = 0;
+            calculate(section);
+            hasUnsavedChanges = true;
+        }
     }
 
     function calculate(section) {
-        const inputs = document.getElementsByClassName(`val-${section}`);
         let total = 0;
-        for (let input of inputs) { total += Number(input.value) || 0; }
+        document.querySelectorAll(`.val-${section}`).forEach(i => total += Number(i.value) || 0);
         document.getElementById(`total-${section}`).innerText = total.toLocaleString();
     }
 
-    function showModal(title, msg, showBtn) {
+    function showModal(t, m, b) {
         document.getElementById('saveModal').style.display = 'flex';
-        document.getElementById('modalTitle').innerText = title;
-        document.getElementById('modalMsg').innerText = msg;
-        document.getElementById('modalBtn').style.display = showBtn ? 'inline-block' : 'none';
+        document.getElementById('modalTitle').innerText = t;
+        document.getElementById('modalMsg').innerText = m;
+        document.getElementById('modalBtn').style.display = b ? 'inline-block' : 'none';
     }
 
-    function closeModal() {
-        document.getElementById('saveModal').style.display = 'none';
-    }
+    function closeModal() { document.getElementById('saveModal').style.display = 'none'; }
 
-    function saveToSheet() {
-        const btn = document.querySelector('.btn-save');
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbyJT26PTN_ouH6tp52Ny0SZO_xhs_m8fUzE7hwIJbFW862My67d9JFPYkajIv2muQbHfQ/exec';
+    // 2. MODIFIED SAVE FUNCTION (Added silent mode for exit)
+    async function saveToSheet(silent = false) {
+        if (!silent) showModal("Saving...", "Recording to Google Sheets.", false);
         
-        btn.disabled = true;
-        showModal("Saving...", "Please wait, your data is being sent to Google Sheets.", false);
-
         const date = document.getElementById('reportDate').value;
         const shift = document.getElementById('shiftTime').value;
         let payload = [];
-
-        ['ton1', 'ton2', 'ton3'].forEach((secId, index) => {
-            const title = "TON " + (index + 1);
-            const tableRows = document.getElementById(`body-${secId}`).rows;
-            for (let i = 0; i < tableRows.length; i++) {
-                const label = tableRows[i].cells[0].innerText;
-                const value = tableRows[i].cells[1].querySelector('input').value;
-                if(value && value !== "0" && value !== "") {
-                    payload.push({ date: date, shift: shift, category: title, label: label, value: value });
-                }
-            }
+        ['ton1', 'ton2', 'ton3'].forEach((secId, idx) => {
+            const title = "TON " + (idx + 1);
+            document.querySelectorAll(`.val-${secId}`).forEach((input, i) => {
+                if(input.value && input.value != 0) payload.push({ date: date, shift: shift, category: title, label: `P${i+1}`, value: input.value });
+            });
             const hits = document.getElementById(`hits-${secId}`).value;
-            if(hits && hits !== "0") {
-                payload.push({ date: date, shift: shift, category: title, label: 'HITS', value: hits });
-            }
+            if(hits && hits != 0) payload.push({ date: date, shift: shift, category: title, label: 'HITS', value: hits });
         });
-
-        if(payload.length === 0) { 
-            showModal("No Data", "There is no information to save.", true);
-            btn.disabled = false;
-            return; 
+        
+        try {
+            await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+            hasUnsavedChanges = false;
+            if (!silent) showModal("Success!", "Data saved to Sheets.", true);
+            return true;
+        } catch (e) {
+            if (!silent) showModal("Error", "Save failed.", true);
+            return false;
         }
-
-        fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) })
-        .then(() => {
-            showModal("Success!", "Your data has been recorded in the sheet.", true);
-            btn.disabled = false;
-        })
-        .catch(error => {
-            showModal("Error", "Something went wrong: " + error, true);
-            btn.disabled = false;
-        });
     }
 
-    function generatePDF() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
+    // 3. THE "CLOSE APP" BUTTON THAT ASKS TO SAVE
+    async function handleExit() {
+        if (hasUnsavedChanges) {
+            const answer = confirm("UNSAVED DATA DETECTED!\n\nClick OK to Save to Google Sheets and Close.\nClick Cancel to Close without saving.");
+            if (answer) {
+                const success = await saveToSheet();
+                if (success) window.close();
+            } else {
+                hasUnsavedChanges = false; // Bypass the browser's X alert
+                window.close();
+            }
+        } else {
+            window.close();
+        }
+    }
+
+    async function loadFromSheet() {
+        const d = document.getElementById('reportDate').value;
+        const s = document.getElementById('shiftTime').value;
+        showModal("Loading...", "Fetching data...", false);
+        try {
+            const res = await fetch(`${SCRIPT_URL}?date=${d}&shift=${s}`);
+            const data = await res.json();
+            if (!data || data.length === 0) { showModal("Not Found", "No records found.", true); return; }
+            document.querySelectorAll('input[type="number"]').forEach(i => i.value = "");
+            data.forEach(item => {
+                let sec = item.category.toLowerCase().replace(" ", "");
+                if (item.label === "HITS") { document.getElementById(`hits-${sec}`).value = item.value; }
+                else {
+                    let tbody = document.getElementById(`body-${sec}`);
+                    let row = Array.from(tbody.rows).find(r => r.cells[0].innerText === item.label);
+                    if(!row) {
+                        row = tbody.insertRow();
+                        row.innerHTML = `<td><span class="row-label">${item.label}</span></td><td><input type="number" value="${item.value}" inputmode="decimal" class="val-${sec}" oninput="markUnsaved('${sec}')"></td>`;
+                    } else { row.cells[1].querySelector('input').value = item.value; }
+                }
+            });
+            ['ton1', 'ton2', 'ton3'].forEach(calculate);
+            showModal("Loaded!", "Data filled.", true);
+            hasUnsavedChanges = false;
+        } catch (e) { showModal("Error", "Load failed.", true); }
+    }
+
+    function generateImageReport() {
         const time = document.getElementById('shiftTime').value;
         const date = document.getElementById('reportDate').value;
-        doc.setFontSize(20); doc.text("TON GROSS REPORT", 105, 15, { align: 'center' });
-        doc.setFontSize(12); doc.text(`Shift: ${time} | Date: ${date}`, 105, 25, { align: 'center' });
-
-        ['ton1', 'ton2', 'ton3'].forEach((section, index) => {
-            const title = "TON " + (index + 1);
-            const rows = document.getElementById(`body-${section}`).rows;
-            const data = [];
-            for (let i = 0; i < rows.length; i++) {
-                const l = rows[i].cells[0].innerText;
-                const v = rows[i].cells[1].querySelector('input').value;
-                if(v) data.push([l, v]);
-            }
-            data.push([{ content: 'TOTAL', styles: { fontStyle: 'bold' }}, document.getElementById(`total-${section}`).innerText]);
-            data.push([{ content: 'HITS', styles: { fontStyle: 'bold', textColor: [255, 0, 0] }}, document.getElementById(`hits-${section}`).value]);
-
-            doc.autoTable({
-                startY: 35, head: [[{ content: title, colSpan: 2, styles: { halign: 'center', fillColor: [0, 123, 255] } }]],
-                body: data, theme: 'grid', margin: { left: (index * 65) + 10 }, tableWidth: 60, styles: { fontSize: 8 }
+        showModal("Generating...", "Drawing large report image...", false);
+        document.getElementById('irMeta').innerText = `SHIFT: ${time} | DATE: ${date}`;
+        
+        ['ton1', 'ton2', 'ton3'].forEach(sec => {
+            const irBody = document.getElementById(`irBody-${sec}`);
+            irBody.innerHTML = "";
+            document.querySelectorAll(`.val-${sec}`).forEach((input, i) => {
+                if(input.value) irBody.innerHTML += `<tr><td class="ir-label">P${i+1}</td><td class="ir-val">${Number(input.value).toLocaleString()}</td></tr>`;
             });
+            irBody.innerHTML += `<tr class="ir-footer"><td class="ir-label">TOTAL</td><td class="ir-val">${document.getElementById(`total-${sec}`).innerText}</td></tr>`;
+            const h = document.getElementById(`hits-${sec}`).value;
+            if(h && h != 0) irBody.innerHTML += `<tr><td class="ir-label ir-hits">HITS</td><td class="ir-val ir-hits">${Number(h).toLocaleString()}</td></tr>`;
         });
-        doc.save(`TON_Report_${time}_${date}.pdf`);
+
+        const area = document.getElementById('imageReportArea');
+        area.classList.add('active');
+        html2canvas(area, { scale: 1.5, windowWidth: 1200 }).then(canvas => {
+            area.classList.remove('active');
+            const link = document.createElement('a');
+            link.download = `Report_${date}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+            showModal("Done!", "Image downloaded.", true);
+        });
     }
 </script>
 </body>
