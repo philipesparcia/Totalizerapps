@@ -42,7 +42,7 @@
         .modal-content { background: white; padding: 30px; border-radius: 15px; text-align: center; max-width: 80%; width: 300px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
         .modal-btn { background: #007bff; color: white; border: none; padding: 10px 25px; border-radius: 5px; cursor: pointer; margin-top: 20px; font-weight: bold; }
 
-        /* Hidden Area for Image Generation */
+        /* Image Generation Area */
         #imageReportArea { position: absolute; left: -9999px; top: -9999px; width: 1200px; background: white; padding: 40px; }
         #imageReportArea.active { position: static; left: 0; top: 0; display: block; }
         .ir-header { text-align: center; margin-bottom: 30px; border-bottom: 4px solid #007bff; padding-bottom: 20px; }
@@ -76,37 +76,40 @@
     </div>
 
     <div class="tables-container">
+        <!-- TON 1 -->
         <div class="ton-section">
             <div class="ton-header"><span>TON 1</span><button class="btn-clear-mini" onclick="clearSection('ton1')">CLEAR</button></div>
             <table id="table-ton1"><tbody id="body-ton1">
-                <tr><td style="width:70px"><span class="row-label">P1</span></td><td><input type="number" inputmode="decimal" class="val-ton1" oninput="markUnsaved('ton1')"></td></tr>
-                <tr><td><span class="row-label">P2</span></td><td><input type="number" inputmode="decimal" class="val-ton1" oninput="markUnsaved('ton1')"></td></tr>
+                <tr><td style="width:70px"><span class="row-label">P1</span></td><td><input type="number" step="any" inputmode="decimal" class="val-ton1" oninput="markUnsaved('ton1')"></td></tr>
+                <tr><td><span class="row-label">P2</span></td><td><input type="number" step="any" inputmode="decimal" class="val-ton1" oninput="markUnsaved('ton1')"></td></tr>
             </tbody></table>
             <button class="btn-add" onclick="addRow('ton1')">+ Add Row</button>
-            <div class="footer-row"><span>TOTAL:</span> <span id="total-ton1">0</span></div>
-            <div class="footer-row"><span>HITS:</span> <input type="number" id="hits-ton1" class="hits-input" value="0" oninput="markUnsaved('ton1')"></div>
+            <div class="footer-row"><span>TOTAL:</span> <span id="total-ton1">0.00</span></div>
+            <div class="footer-row"><span>HITS:</span> <input type="number" step="any" id="hits-ton1" class="hits-input" value="0" oninput="markUnsaved('ton1')"></div>
         </div>
 
+        <!-- TON 2 -->
         <div class="ton-section">
             <div class="ton-header"><span>TON 2</span><button class="btn-clear-mini" onclick="clearSection('ton2')">CLEAR</button></div>
             <table id="table-ton2"><tbody id="body-ton2">
-                <tr><td style="width:70px"><span class="row-label">P1</span></td><td><input type="number" inputmode="decimal" class="val-ton2" oninput="markUnsaved('ton2')"></td></tr>
-                <tr><td><span class="row-label">P2</span></td><td><input type="number" inputmode="decimal" class="val-ton2" oninput="markUnsaved('ton2')"></td></tr>
+                <tr><td style="width:70px"><span class="row-label">P1</span></td><td><input type="number" step="any" inputmode="decimal" class="val-ton2" oninput="markUnsaved('ton2')"></td></tr>
+                <tr><td><span class="row-label">P2</span></td><td><input type="number" step="any" inputmode="decimal" class="val-ton2" oninput="markUnsaved('ton2')"></td></tr>
             </tbody></table>
             <button class="btn-add" onclick="addRow('ton2')">+ Add Row</button>
-            <div class="footer-row"><span>TOTAL:</span> <span id="total-ton2">0</span></div>
-            <div class="footer-row"><span>HITS:</span> <input type="number" id="hits-ton2" class="hits-input" value="0" oninput="markUnsaved('ton2')"></div>
+            <div class="footer-row"><span>TOTAL:</span> <span id="total-ton2">0.00</span></div>
+            <div class="footer-row"><span>HITS:</span> <input type="number" step="any" id="hits-ton2" class="hits-input" value="0" oninput="markUnsaved('ton2')"></div>
         </div>
 
+        <!-- TON 3 -->
         <div class="ton-section">
             <div class="ton-header"><span>TON 3</span><button class="btn-clear-mini" onclick="clearSection('ton3')">CLEAR</button></div>
             <table id="table-ton3"><tbody id="body-ton3">
-                <tr><td style="width:70px"><span class="row-label">P1</span></td><td><input type="number" inputmode="decimal" class="val-ton3" oninput="markUnsaved('ton3')"></td></tr>
-                <tr><td><span class="row-label">P2</span></td><td><input type="number" inputmode="decimal" class="val-ton3" oninput="markUnsaved('ton3')"></td></tr>
+                <tr><td style="width:70px"><span class="row-label">P1</span></td><td><input type="number" step="any" inputmode="decimal" class="val-ton3" oninput="markUnsaved('ton3')"></td></tr>
+                <tr><td><span class="row-label">P2</span></td><td><input type="number" step="any" inputmode="decimal" class="val-ton3" oninput="markUnsaved('ton3')"></td></tr>
             </tbody></table>
             <button class="btn-add" onclick="addRow('ton3')">+ Add Row</button>
-            <div class="footer-row"><span>TOTAL:</span> <span id="total-ton3">0</span></div>
-            <div class="footer-row"><span>HITS:</span> <input type="number" id="hits-ton3" class="hits-input" value="0" oninput="markUnsaved('ton3')"></div>
+            <div class="footer-row"><span>TOTAL:</span> <span id="total-ton3">0.00</span></div>
+            <div class="footer-row"><span>HITS:</span> <input type="number" step="any" id="hits-ton3" class="hits-input" value="0" oninput="markUnsaved('ton3')"></div>
         </div>
     </div>
 
@@ -137,11 +140,8 @@
 
     document.getElementById('reportDate').valueAsDate = new Date();
 
-    // 1. TRIGGER WARNING WHEN CLICKING 'X' ON BROWSER
     window.onbeforeunload = function() {
-        if (hasUnsavedChanges) {
-            return "You have unsaved data! Are you sure you want to close without saving to Google Sheets?";
-        }
+        if (hasUnsavedChanges) return "Unsaved changes detected!";
     };
 
     function markUnsaved(section) {
@@ -153,7 +153,7 @@
         const tbody = document.getElementById(`body-${section}`);
         const rowCount = tbody.rows.length + 1;
         const row = tbody.insertRow();
-        row.innerHTML = `<td style="width:70px"><span class="row-label">P${rowCount}</span></td><td><input type="number" inputmode="decimal" class="val-${section}" oninput="markUnsaved('${section}')"></td>`;
+        row.innerHTML = `<td style="width:70px"><span class="row-label">P${rowCount}</span></td><td><input type="number" step="any" inputmode="decimal" class="val-${section}" oninput="markUnsaved('${section}')"></td>`;
         row.querySelector('input').focus();
         hasUnsavedChanges = true;
     }
@@ -161,8 +161,8 @@
     function clearSection(section) {
         if(confirm(`Reset ${section.toUpperCase()}?`)) {
             document.getElementById(`body-${section}`).innerHTML = `
-                <tr><td style="width:70px"><span class="row-label">P1</span></td><td><input type="number" inputmode="decimal" class="val-${section}" oninput="markUnsaved('${section}')"></td></tr>
-                <tr><td><span class="row-label">P2</span></td><td><input type="number" inputmode="decimal" class="val-${section}" oninput="markUnsaved('${section}')"></td></tr>
+                <tr><td style="width:70px"><span class="row-label">P1</span></td><td><input type="number" step="any" inputmode="decimal" class="val-${section}" oninput="markUnsaved('${section}')"></td></tr>
+                <tr><td><span class="row-label">P2</span></td><td><input type="number" step="any" inputmode="decimal" class="val-${section}" oninput="markUnsaved('${section}')"></td></tr>
             `;
             document.getElementById(`hits-${section}`).value = 0;
             calculate(section);
@@ -172,8 +172,16 @@
 
     function calculate(section) {
         let total = 0;
-        document.querySelectorAll(`.val-${section}`).forEach(i => total += Number(i.value) || 0);
-        document.getElementById(`total-${section}`).innerText = total.toLocaleString();
+        const inputs = document.querySelectorAll(`.val-${section}`);
+        inputs.forEach(i => {
+            const val = parseFloat(i.value);
+            if (!isNaN(val)) total += val;
+        });
+        const totalElem = document.getElementById(`total-${section}`);
+        if (totalElem) {
+            // Display with 2 decimal places for precision
+            totalElem.innerText = total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
     }
 
     function showModal(t, m, b) {
@@ -185,22 +193,19 @@
 
     function closeModal() { document.getElementById('saveModal').style.display = 'none'; }
 
-    // 2. MODIFIED SAVE FUNCTION (Added silent mode for exit)
     async function saveToSheet(silent = false) {
         if (!silent) showModal("Saving...", "Recording to Google Sheets.", false);
-        
         const date = document.getElementById('reportDate').value;
         const shift = document.getElementById('shiftTime').value;
         let payload = [];
         ['ton1', 'ton2', 'ton3'].forEach((secId, idx) => {
             const title = "TON " + (idx + 1);
             document.querySelectorAll(`.val-${secId}`).forEach((input, i) => {
-                if(input.value && input.value != 0) payload.push({ date: date, shift: shift, category: title, label: `P${i+1}`, value: input.value });
+                if(input.value) payload.push({ date: date, shift: shift, category: title, label: `P${i+1}`, value: input.value });
             });
             const hits = document.getElementById(`hits-${secId}`).value;
             if(hits && hits != 0) payload.push({ date: date, shift: shift, category: title, label: 'HITS', value: hits });
         });
-        
         try {
             await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
             hasUnsavedChanges = false;
@@ -212,15 +217,13 @@
         }
     }
 
-    // 3. THE "CLOSE APP" BUTTON THAT ASKS TO SAVE
     async function handleExit() {
         if (hasUnsavedChanges) {
-            const answer = confirm("UNSAVED DATA DETECTED!\n\nClick OK to Save to Google Sheets and Close.\nClick Cancel to Close without saving.");
-            if (answer) {
+            if (confirm("Save changes before exiting?")) {
                 const success = await saveToSheet();
                 if (success) window.close();
             } else {
-                hasUnsavedChanges = false; // Bypass the browser's X alert
+                hasUnsavedChanges = false;
                 window.close();
             }
         } else {
@@ -236,17 +239,20 @@
             const res = await fetch(`${SCRIPT_URL}?date=${d}&shift=${s}`);
             const data = await res.json();
             if (!data || data.length === 0) { showModal("Not Found", "No records found.", true); return; }
-            document.querySelectorAll('input[type="number"]').forEach(i => i.value = "");
+            
+            ['ton1', 'ton2', 'ton3'].forEach(sec => {
+                document.getElementById(`body-${sec}`).innerHTML = "";
+                document.getElementById(`hits-${sec}`).value = 0;
+            });
+
             data.forEach(item => {
                 let sec = item.category.toLowerCase().replace(" ", "");
-                if (item.label === "HITS") { document.getElementById(`hits-${sec}`).value = item.value; }
-                else {
+                if (item.label === "HITS") { 
+                    document.getElementById(`hits-${sec}`).value = item.value; 
+                } else {
                     let tbody = document.getElementById(`body-${sec}`);
-                    let row = Array.from(tbody.rows).find(r => r.cells[0].innerText === item.label);
-                    if(!row) {
-                        row = tbody.insertRow();
-                        row.innerHTML = `<td><span class="row-label">${item.label}</span></td><td><input type="number" value="${item.value}" inputmode="decimal" class="val-${sec}" oninput="markUnsaved('${sec}')"></td>`;
-                    } else { row.cells[1].querySelector('input').value = item.value; }
+                    let row = tbody.insertRow();
+                    row.innerHTML = `<td><span class="row-label">${item.label}</span></td><td><input type="number" step="any" value="${item.value}" inputmode="decimal" class="val-${sec}" oninput="markUnsaved('${sec}')"></td>`;
                 }
             });
             ['ton1', 'ton2', 'ton3'].forEach(calculate);
@@ -265,11 +271,11 @@
             const irBody = document.getElementById(`irBody-${sec}`);
             irBody.innerHTML = "";
             document.querySelectorAll(`.val-${sec}`).forEach((input, i) => {
-                if(input.value) irBody.innerHTML += `<tr><td class="ir-label">P${i+1}</td><td class="ir-val">${Number(input.value).toLocaleString()}</td></tr>`;
+                if(input.value) irBody.innerHTML += `<tr><td class="ir-label">P${i+1}</td><td class="ir-val">${parseFloat(input.value).toLocaleString(undefined, {minimumFractionDigits: 2})}</td></tr>`;
             });
             irBody.innerHTML += `<tr class="ir-footer"><td class="ir-label">TOTAL</td><td class="ir-val">${document.getElementById(`total-${sec}`).innerText}</td></tr>`;
             const h = document.getElementById(`hits-${sec}`).value;
-            if(h && h != 0) irBody.innerHTML += `<tr><td class="ir-label ir-hits">HITS</td><td class="ir-val ir-hits">${Number(h).toLocaleString()}</td></tr>`;
+            if(h && h != 0) irBody.innerHTML += `<tr><td class="ir-label ir-hits">HITS</td><td class="ir-val ir-hits">${parseFloat(h).toLocaleString()}</td></tr>`;
         });
 
         const area = document.getElementById('imageReportArea');
