@@ -42,7 +42,7 @@
         .modal-content { background: white; padding: 30px; border-radius: 15px; text-align: center; max-width: 80%; width: 300px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
         .modal-btn { background: #007bff; color: white; border: none; padding: 10px 25px; border-radius: 5px; cursor: pointer; margin-top: 20px; font-weight: bold; }
 
-        /* Image Generation Area */
+        /* Hidden Area for Image Generation */
         #imageReportArea { position: absolute; left: -9999px; top: -9999px; width: 1200px; background: white; padding: 40px; }
         #imageReportArea.active { position: static; left: 0; top: 0; display: block; }
         .ir-header { text-align: center; margin-bottom: 30px; border-bottom: 4px solid #007bff; padding-bottom: 20px; }
@@ -76,7 +76,7 @@
     </div>
 
     <div class="tables-container">
-        <!-- TON 1 -->
+        <!-- TON Sections (1, 2, 3) -->
         <div class="ton-section">
             <div class="ton-header"><span>TON 1</span><button class="btn-clear-mini" onclick="clearSection('ton1')">CLEAR</button></div>
             <table id="table-ton1"><tbody id="body-ton1">
@@ -88,7 +88,6 @@
             <div class="footer-row"><span>HITS:</span> <input type="number" step="any" id="hits-ton1" class="hits-input" value="0" oninput="markUnsaved('ton1')"></div>
         </div>
 
-        <!-- TON 2 -->
         <div class="ton-section">
             <div class="ton-header"><span>TON 2</span><button class="btn-clear-mini" onclick="clearSection('ton2')">CLEAR</button></div>
             <table id="table-ton2"><tbody id="body-ton2">
@@ -100,7 +99,6 @@
             <div class="footer-row"><span>HITS:</span> <input type="number" step="any" id="hits-ton2" class="hits-input" value="0" oninput="markUnsaved('ton2')"></div>
         </div>
 
-        <!-- TON 3 -->
         <div class="ton-section">
             <div class="ton-header"><span>TON 3</span><button class="btn-clear-mini" onclick="clearSection('ton3')">CLEAR</button></div>
             <table id="table-ton3"><tbody id="body-ton3">
@@ -141,7 +139,7 @@
     document.getElementById('reportDate').valueAsDate = new Date();
 
     window.onbeforeunload = function() {
-        if (hasUnsavedChanges) return "Unsaved changes detected!";
+        if (hasUnsavedChanges) return "You have unsaved changes!";
     };
 
     function markUnsaved(section) {
@@ -158,15 +156,15 @@
         hasUnsavedChanges = true;
     }
 
-    function clearSection(section) {
-        if(confirm(`Reset ${section.toUpperCase()}?`)) {
+    function clearSection(section, skipConfirm = false) {
+        if(skipConfirm || confirm(`Reset ${section.toUpperCase()}?`)) {
             document.getElementById(`body-${section}`).innerHTML = `
                 <tr><td style="width:70px"><span class="row-label">P1</span></td><td><input type="number" step="any" inputmode="decimal" class="val-${section}" oninput="markUnsaved('${section}')"></td></tr>
                 <tr><td><span class="row-label">P2</span></td><td><input type="number" step="any" inputmode="decimal" class="val-${section}" oninput="markUnsaved('${section}')"></td></tr>
             `;
             document.getElementById(`hits-${section}`).value = 0;
             calculate(section);
-            hasUnsavedChanges = true;
+            if(!skipConfirm) hasUnsavedChanges = true;
         }
     }
 
@@ -177,11 +175,8 @@
             const val = parseFloat(i.value);
             if (!isNaN(val)) total += val;
         });
-        const totalElem = document.getElementById(`total-${section}`);
-        if (totalElem) {
-            // Display with 2 decimal places for precision
-            totalElem.innerText = total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        }
+        const totalDisplay = document.getElementById(`total-${section}`);
+        if (totalDisplay) totalDisplay.innerText = total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
     }
 
     function showModal(t, m, b) {
@@ -194,10 +189,11 @@
     function closeModal() { document.getElementById('saveModal').style.display = 'none'; }
 
     async function saveToSheet(silent = false) {
-        if (!silent) showModal("Saving...", "Recording to Google Sheets.", false);
+        if (!silent) showModal("Saving...", "Connecting to Sheets...", false);
         const date = document.getElementById('reportDate').value;
         const shift = document.getElementById('shiftTime').value;
         let payload = [];
+        
         ['ton1', 'ton2', 'ton3'].forEach((secId, idx) => {
             const title = "TON " + (idx + 1);
             document.querySelectorAll(`.val-${secId}`).forEach((input, i) => {
@@ -206,10 +202,11 @@
             const hits = document.getElementById(`hits-${secId}`).value;
             if(hits && hits != 0) payload.push({ date: date, shift: shift, category: title, label: 'HITS', value: hits });
         });
+        
         try {
             await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
             hasUnsavedChanges = false;
-            if (!silent) showModal("Success!", "Data saved to Sheets.", true);
+            if (!silent) showModal("Success!", "Shift data saved.", true);
             return true;
         } catch (e) {
             if (!silent) showModal("Error", "Save failed.", true);
@@ -219,52 +216,64 @@
 
     async function handleExit() {
         if (hasUnsavedChanges) {
-            if (confirm("Save changes before exiting?")) {
+            if (confirm("Save current shift before exiting?")) {
                 const success = await saveToSheet();
                 if (success) window.close();
             } else {
                 hasUnsavedChanges = false;
                 window.close();
             }
-        } else {
-            window.close();
-        }
+        } else { window.close(); }
     }
 
     async function loadFromSheet() {
         const d = document.getElementById('reportDate').value;
         const s = document.getElementById('shiftTime').value;
-        showModal("Loading...", "Fetching data...", false);
+        showModal("Loading...", `Fetching ${s} data...`, false);
+        
         try {
             const res = await fetch(`${SCRIPT_URL}?date=${d}&shift=${s}`);
             const data = await res.json();
-            if (!data || data.length === 0) { showModal("Not Found", "No records found.", true); return; }
             
-            ['ton1', 'ton2', 'ton3'].forEach(sec => {
-                document.getElementById(`body-${sec}`).innerHTML = "";
-                document.getElementById(`hits-${sec}`).value = 0;
-            });
+            // Clear current view first
+            ['ton1', 'ton2', 'ton3'].forEach(sec => clearSection(sec, true));
+
+            if (!data || data.length === 0) {
+                showModal("Ready", `No records found for ${s}. UI cleared for entry.`, true);
+                return;
+            }
 
             data.forEach(item => {
                 let sec = item.category.toLowerCase().replace(" ", "");
-                if (item.label === "HITS") { 
-                    document.getElementById(`hits-${sec}`).value = item.value; 
+                if (item.label === "HITS") {
+                    document.getElementById(`hits-${sec}`).value = item.value;
                 } else {
                     let tbody = document.getElementById(`body-${sec}`);
-                    let row = tbody.insertRow();
-                    row.innerHTML = `<td><span class="row-label">${item.label}</span></td><td><input type="number" step="any" value="${item.value}" inputmode="decimal" class="val-${sec}" oninput="markUnsaved('${sec}')"></td>`;
+                    // Check if P1/P2 default rows exist, fill them, otherwise add new
+                    let inputs = tbody.querySelectorAll('input');
+                    let targetIndex = parseInt(item.label.replace('P', '')) - 1;
+                    
+                    if (inputs[targetIndex]) {
+                        inputs[targetIndex].value = item.value;
+                    } else {
+                        const row = tbody.insertRow();
+                        row.innerHTML = `<td><span class="row-label">${item.label}</span></td><td><input type="number" step="any" value="${item.value}" inputmode="decimal" class="val-${sec}" oninput="markUnsaved('${sec}')"></td>`;
+                    }
                 }
             });
+            
             ['ton1', 'ton2', 'ton3'].forEach(calculate);
-            showModal("Loaded!", "Data filled.", true);
+            showModal("Loaded!", `${s} data restored.`, true);
             hasUnsavedChanges = false;
-        } catch (e) { showModal("Error", "Load failed.", true); }
+        } catch (e) { 
+            showModal("Error", "Could not connect to database.", true); 
+        }
     }
 
     function generateImageReport() {
         const time = document.getElementById('shiftTime').value;
         const date = document.getElementById('reportDate').value;
-        showModal("Generating...", "Drawing large report image...", false);
+        showModal("Generating...", "Creating report...", false);
         document.getElementById('irMeta').innerText = `SHIFT: ${time} | DATE: ${date}`;
         
         ['ton1', 'ton2', 'ton3'].forEach(sec => {
@@ -283,10 +292,10 @@
         html2canvas(area, { scale: 1.5, windowWidth: 1200 }).then(canvas => {
             area.classList.remove('active');
             const link = document.createElement('a');
-            link.download = `Report_${date}.png`;
+            link.download = `Report_${time}_${date}.png`;
             link.href = canvas.toDataURL();
             link.click();
-            showModal("Done!", "Image downloaded.", true);
+            showModal("Done!", "Image saved to gallery.", true);
         });
     }
 </script>
