@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TON Gross Reporting System</title>
+    <!-- Dependencies -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
+    
     <style>
         body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background-color: #f4f7f6; padding: 10px; margin: 0; }
         .container { max-width: 1000px; margin: auto; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
@@ -13,6 +16,10 @@
         .header-inputs { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; justify-content: center; background: #e9ecef; padding: 15px; border-radius: 8px; }
         .header-inputs div { flex: 1; min-width: 140px; }
         
+        .upload-section { margin-bottom: 20px; padding: 20px; background: #fff3cd; border: 2px dashed #856404; border-radius: 10px; text-align: center; }
+        .btn-scan { background: #856404; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 10px; }
+        #scanStatus { color: #856404; font-weight: bold; margin-top: 8px; font-size: 14px; }
+
         .tables-container { display: flex; flex-direction: column; gap: 20px; }
         @media (min-width: 768px) { .tables-container { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; } }
 
@@ -42,7 +49,6 @@
         .modal-content { background: white; padding: 30px; border-radius: 15px; text-align: center; max-width: 80%; width: 300px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
         .modal-btn { background: #007bff; color: white; border: none; padding: 10px 25px; border-radius: 5px; cursor: pointer; margin-top: 20px; font-weight: bold; }
 
-        /* Image Generation Area */
         #imageReportArea { position: absolute; left: -9999px; top: -9999px; width: 1200px; background: white; padding: 40px; }
         #imageReportArea.active { position: static; left: 0; top: 0; display: block; }
         .ir-header { text-align: center; margin-bottom: 30px; border-bottom: 4px solid #007bff; padding-bottom: 20px; }
@@ -75,14 +81,19 @@
         <div><label><b>Date:</b></label><input type="date" id="reportDate"></div>
     </div>
 
+    <!-- Precision Scanner -->
+    <div class="upload-section">
+        <b>UPLOAD PREVIOUS REPORT IMAGE</b><br>
+        <input type="file" id="imageUpload" accept="image/*" style="margin-top:10px;"><br>
+        <button class="btn-scan" onclick="startPrecisionScan()">RUN PRECISION SCAN</button>
+        <div id="scanStatus">Ready</div>
+    </div>
+
     <div class="tables-container">
         <!-- TON 1 -->
         <div class="ton-section">
             <div class="ton-header"><span>TON 1</span><button class="btn-clear-mini" onclick="clearSection('ton1')">CLEAR</button></div>
-            <table id="table-ton1"><tbody id="body-ton1">
-                <tr><td style="width:70px"><span class="row-label">P1</span></td><td><input type="number" step="any" inputmode="decimal" class="val-ton1" oninput="markUnsaved('ton1')"></td></tr>
-                <tr><td><span class="row-label">P2</span></td><td><input type="number" step="any" inputmode="decimal" class="val-ton1" oninput="markUnsaved('ton1')"></td></tr>
-            </tbody></table>
+            <table id="table-ton1"><tbody id="body-ton1"></tbody></table>
             <button class="btn-add" onclick="addRow('ton1')">+ Add Row</button>
             <div class="footer-row"><span>TOTAL:</span> <span id="total-ton1">0.00</span></div>
             <div class="footer-row"><span>HITS:</span> <input type="number" step="any" id="hits-ton1" class="hits-input" value="0" oninput="markUnsaved('ton1')"></div>
@@ -91,10 +102,7 @@
         <!-- TON 2 -->
         <div class="ton-section">
             <div class="ton-header"><span>TON 2</span><button class="btn-clear-mini" onclick="clearSection('ton2')">CLEAR</button></div>
-            <table id="table-ton2"><tbody id="body-ton2">
-                <tr><td style="width:70px"><span class="row-label">P1</span></td><td><input type="number" step="any" inputmode="decimal" class="val-ton2" oninput="markUnsaved('ton2')"></td></tr>
-                <tr><td><span class="row-label">P2</span></td><td><input type="number" step="any" inputmode="decimal" class="val-ton2" oninput="markUnsaved('ton2')"></td></tr>
-            </tbody></table>
+            <table id="table-ton2"><tbody id="body-ton2"></tbody></table>
             <button class="btn-add" onclick="addRow('ton2')">+ Add Row</button>
             <div class="footer-row"><span>TOTAL:</span> <span id="total-ton2">0.00</span></div>
             <div class="footer-row"><span>HITS:</span> <input type="number" step="any" id="hits-ton2" class="hits-input" value="0" oninput="markUnsaved('ton2')"></div>
@@ -103,10 +111,7 @@
         <!-- TON 3 -->
         <div class="ton-section">
             <div class="ton-header"><span>TON 3</span><button class="btn-clear-mini" onclick="clearSection('ton3')">CLEAR</button></div>
-            <table id="table-ton3"><tbody id="body-ton3">
-                <tr><td style="width:70px"><span class="row-label">P1</span></td><td><input type="number" step="any" inputmode="decimal" class="val-ton3" oninput="markUnsaved('ton3')"></td></tr>
-                <tr><td><span class="row-label">P2</span></td><td><input type="number" step="any" inputmode="decimal" class="val-ton3" oninput="markUnsaved('ton3')"></td></tr>
-            </tbody></table>
+            <table id="table-ton3"><tbody id="body-ton3"></tbody></table>
             <button class="btn-add" onclick="addRow('ton3')">+ Add Row</button>
             <div class="footer-row"><span>TOTAL:</span> <span id="total-ton3">0.00</span></div>
             <div class="footer-row"><span>HITS:</span> <input type="number" step="any" id="hits-ton3" class="hits-input" value="0" oninput="markUnsaved('ton3')"></div>
@@ -140,34 +145,93 @@
 
     document.getElementById('reportDate').valueAsDate = new Date();
 
-    window.onbeforeunload = function() {
-        if (hasUnsavedChanges) return "Unsaved changes detected!";
-    };
+    // --- OCR PRECISION SCAN LOGIC ---
+    async function startPrecisionScan() {
+        const fileInput = document.getElementById('imageUpload');
+        if (!fileInput.files[0]) return alert("Select an image first");
+        
+        const status = document.getElementById('scanStatus');
+        status.innerText = "Analyzing Columns, Date & Shift... Please wait.";
 
+        const img = new Image();
+        img.src = URL.createObjectURL(fileInput.files[0]);
+        
+        img.onload = async () => {
+            const sections = ['ton1', 'ton2', 'ton3'];
+            const sectionWidth = img.width / 3;
+
+            sections.forEach(s => {
+                document.getElementById(`body-${s}`).innerHTML = "";
+                document.getElementById(`hits-${s}`).value = 0;
+            });
+
+            for (let i = 0; i < sections.length; i++) {
+                status.innerText = `Scanning Column ${i + 1}...`;
+                const canvas = document.createElement('canvas');
+                canvas.width = sectionWidth;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, i * sectionWidth, 0, sectionWidth, img.height, 0, 0, sectionWidth, img.height);
+                
+                const { data: { text } } = await Tesseract.recognize(canvas, 'eng');
+                parseOcrResult(text, sections[i]);
+            }
+            
+            status.innerText = "Scan Complete!";
+            hasUnsavedChanges = true;
+        };
+    }
+
+    function parseOcrResult(text, sectionId) {
+        const upperText = text.toUpperCase();
+
+        // 1. Shift Detection
+        const shiftSelect = document.getElementById('shiftTime');
+        if (upperText.includes("2PM") || upperText.includes("2 PM")) shiftSelect.value = "2PM";
+        else if (upperText.includes("5PM") || upperText.includes("5 PM")) shiftSelect.value = "5PM";
+        else if (upperText.includes("9PM") || upperText.includes("9 PM")) shiftSelect.value = "9PM";
+
+        // 2. Date Detection
+        const dateRegex = /(\d{1,4}[-/.]\d{1,2}[-/.]\d{1,4})/; 
+        const dateMatch = text.match(dateRegex);
+        if (dateMatch) {
+            const foundDate = new Date(dateMatch[1]);
+            if (!isNaN(foundDate.getTime())) {
+                const formattedDate = foundDate.toISOString().split('T')[0];
+                document.getElementById('reportDate').value = formattedDate;
+            }
+        }
+
+        // 3. Data Parsing
+        const lines = text.split('\n');
+        lines.forEach(line => {
+            const clean = line.replace(/,|\$/g, '').trim();
+            const match = clean.match(/(\d+\.\d{2})/);
+            
+            if (match && !clean.toUpperCase().includes("TOTAL")) {
+                addRow(sectionId, match[1]);
+            }
+            
+            if (clean.toUpperCase().includes("HITS")) {
+                const hitsMatch = clean.match(/(\d+)/);
+                if (hitsMatch) document.getElementById(`hits-${sectionId}`).value = hitsMatch[1];
+            }
+        });
+        calculate(sectionId);
+    }
+
+    // --- CORE UI FUNCTIONS ---
     function markUnsaved(section) {
         hasUnsavedChanges = true;
         calculate(section);
     }
 
-    function addRow(section) {
+    function addRow(section, val = "") {
         const tbody = document.getElementById(`body-${section}`);
         const rowCount = tbody.rows.length + 1;
         const row = tbody.insertRow();
-        row.innerHTML = `<td style="width:70px"><span class="row-label">P${rowCount}</span></td><td><input type="number" step="any" inputmode="decimal" class="val-${section}" oninput="markUnsaved('${section}')"></td>`;
-        row.querySelector('input').focus();
-        hasUnsavedChanges = true;
-    }
-
-    function clearSection(section) {
-        if(confirm(`Reset ${section.toUpperCase()}?`)) {
-            document.getElementById(`body-${section}`).innerHTML = `
-                <tr><td style="width:70px"><span class="row-label">P1</span></td><td><input type="number" step="any" inputmode="decimal" class="val-${section}" oninput="markUnsaved('${section}')"></td></tr>
-                <tr><td><span class="row-label">P2</span></td><td><input type="number" step="any" inputmode="decimal" class="val-${section}" oninput="markUnsaved('${section}')"></td></tr>
-            `;
-            document.getElementById(`hits-${section}`).value = 0;
-            calculate(section);
-            hasUnsavedChanges = true;
-        }
+        row.innerHTML = `<td style="width:70px"><span class="row-label">P${rowCount}</span></td>
+                         <td><input type="number" step="any" inputmode="decimal" value="${val}" class="val-${section}" oninput="markUnsaved('${section}')"></td>`;
     }
 
     function calculate(section) {
@@ -178,9 +242,14 @@
             if (!isNaN(val)) total += val;
         });
         const totalElem = document.getElementById(`total-${section}`);
-        if (totalElem) {
-            // Display with 2 decimal places for precision
-            totalElem.innerText = total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        if (totalElem) totalElem.innerText = total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function clearSection(section) {
+        if(confirm(`Reset ${section.toUpperCase()}?`)) {
+            document.getElementById(`body-${section}`).innerHTML = "";
+            document.getElementById(`hits-${section}`).value = 0;
+            calculate(section);
         }
     }
 
@@ -190,11 +259,11 @@
         document.getElementById('modalMsg').innerText = m;
         document.getElementById('modalBtn').style.display = b ? 'inline-block' : 'none';
     }
-
     function closeModal() { document.getElementById('saveModal').style.display = 'none'; }
 
-    async function saveToSheet(silent = false) {
-        if (!silent) showModal("Saving...", "Recording to Google Sheets.", false);
+    // --- DATA ACTIONS ---
+    async function saveToSheet() {
+        showModal("Saving...", "Recording to Google Sheets.", false);
         const date = document.getElementById('reportDate').value;
         const shift = document.getElementById('shiftTime').value;
         let payload = [];
@@ -209,26 +278,8 @@
         try {
             await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
             hasUnsavedChanges = false;
-            if (!silent) showModal("Success!", "Data saved to Sheets.", true);
-            return true;
-        } catch (e) {
-            if (!silent) showModal("Error", "Save failed.", true);
-            return false;
-        }
-    }
-
-    async function handleExit() {
-        if (hasUnsavedChanges) {
-            if (confirm("Save changes before exiting?")) {
-                const success = await saveToSheet();
-                if (success) window.close();
-            } else {
-                hasUnsavedChanges = false;
-                window.close();
-            }
-        } else {
-            window.close();
-        }
+            showModal("Success!", "Data saved to Sheets.", true);
+        } catch (e) { showModal("Error", "Save failed.", true); }
     }
 
     async function loadFromSheet() {
@@ -250,9 +301,7 @@
                 if (item.label === "HITS") { 
                     document.getElementById(`hits-${sec}`).value = item.value; 
                 } else {
-                    let tbody = document.getElementById(`body-${sec}`);
-                    let row = tbody.insertRow();
-                    row.innerHTML = `<td><span class="row-label">${item.label}</span></td><td><input type="number" step="any" value="${item.value}" inputmode="decimal" class="val-${sec}" oninput="markUnsaved('${sec}')"></td>`;
+                    addRow(sec, item.value);
                 }
             });
             ['ton1', 'ton2', 'ton3'].forEach(calculate);
@@ -288,6 +337,13 @@
             link.click();
             showModal("Done!", "Image downloaded.", true);
         });
+    }
+
+    async function handleExit() {
+        if (hasUnsavedChanges && confirm("Save changes before exiting?")) {
+            await saveToSheet();
+        }
+        window.close();
     }
 </script>
 </body>
