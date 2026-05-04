@@ -63,6 +63,17 @@
         .ir-label { font-weight: bold; color: #333; width: 80px; background: #f9f9f9; }
         .ir-footer { background: #eee; font-weight: 900; border-top: 3px solid #ccc; }
         .ir-hits { color: #b21f2d; font-weight: 900; background: #fff0f0; }
+
+        /* This removes the arrows you saw in image_a99df3.png */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+   
     </style>
 </head>
 <body>
@@ -226,13 +237,32 @@
         calculate(section);
     }
 
-    function addRow(section, val = "") {
-        const tbody = document.getElementById(`body-${section}`);
-        const rowCount = tbody.rows.length + 1;
-        const row = tbody.insertRow();
-        row.innerHTML = `<td style="width:70px"><span class="row-label">P${rowCount}</span></td>
-                         <td><input type="number" step="any" inputmode="decimal" value="${val}" class="val-${section}" oninput="markUnsaved('${section}')"></td>`;
-    }
+function addRow(section, val = "") {
+    const tbody = document.getElementById(`body-${section}`);
+    const rowCount = tbody.rows.length + 1;
+    const row = tbody.insertRow();
+    
+    // 1. Create a unique ID for the new input
+    const newId = `input-${section}-${rowCount}`;
+    
+    row.innerHTML = `<td style="width:70px"><span class="row-label">P${rowCount}</span></td>
+                     <td><input type="number" 
+                                id="${newId}" 
+                                step="any" 
+                                inputmode="decimal" 
+                                value="${val}" 
+                                class="val-${section}" 
+                                oninput="markUnsaved('${section}')"></td>`;
+    
+    // 2. Put the cursor in the new input immediately
+    // We use setTimeout to ensure the browser has finished rendering the new element
+    setTimeout(() => {
+        const newInp = document.getElementById(newId);
+        if (newInp) newInp.focus();
+    }, 10);
+}    
+
+
 
     function calculate(section) {
         let total = 0;
